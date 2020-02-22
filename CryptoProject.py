@@ -1,12 +1,14 @@
 from Crypto.Cipher import AES
 from Crypto import Random
+from Crypto_main import *
 
 
 
-iv = Random.new().read(AES.block_size)
 key = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
 
-def cipherFile(key,inputFile,outputFile,iv):
+def cipherFile(key,inputFile):
+    #Generate IV
+    iv = Random.new().read(AES.block_size)
     #Open file in reading binary mode and store it inside a variable
     with open(inputFile, 'rb') as fileToCipher:
         newByteFile = bytearray(fileToCipher.read())
@@ -31,12 +33,13 @@ def cipherFile(key,inputFile,outputFile,iv):
         blockcipheredNext = cipher.encrypt(blockXOR)
         blockciphered = blockcipheredNext
         bytesCiphered += blockciphered
-    with open(outputFile, 'wb') as fileCiphered:
-        fileCiphered.write(bytesCiphered)
-        del bytesCiphered
-        fileCiphered.close()
     
-def decipher(key,inputFile,outputFile,iv):
+    return [inputFile,blockciphered,iv]
+
+    
+def decipher(key,inputFile,iv):
+    #Generate IV
+    iv = Random.new().read(AES.block_size)
     with open(inputFile, 'rb') as fileCiphered:
         byteFileCiphered = bytearray(fileCiphered.read())
         fileCiphered.close()
@@ -63,14 +66,34 @@ def decipher(key,inputFile,outputFile,iv):
         #Add Deciphered Block to Bytearray
         bytesDeciphered += blockXOR
     
-    with open(outputFile, 'wb') as fileCiphered:
-        fileCiphered.write(bytesDeciphered)
-        del bytesDeciphered
-        fileCiphered.close()
+    return [inputFile,bytesDeciphered]
 
 
 
+#Create an array of lists, the last file is filled with name of input file, bytearray ciphered or decipher file, and iv
+def arrayFiles(key,inputfiles,encrypt):
+    #Encrypt all files in input
+    if encrypt:
+        for fileToCipher in inputfiles:
+            listofCiphered += cipherFile(key,fileToCipher)
+        return listofCiphered
+    #Decrypt all files in input thanks to the iv stored in a json file
+    else:
+        #Open json of IV if it exist
+        if fileExist(getDirName(inputfiles)+"/iv.json"):
+            with open(getDirName(inputfiles)+"/iv.json",'rb') as jsonFile:
+                json_dict = json.loads(jsonFile.read())
+        else:
+            print("The files to decrypt must be in the same directory as the iv.json file")
+            exit()
+        for fileToDecipher in inputfiles:
+            listOfDeciphered += decipher(key,fileToCipher,json_dict[getFileName(fileToDecipher)])
+        return listOfDeciphered
 
 
 
-
+############################################################
+##
+#NEED TO TEST SUPPLY CHAIN BETWEEN CIPHER/DECIPHER ARRAYFILES and CREATEZIP#
+##
+############################################################
