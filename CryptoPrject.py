@@ -1,8 +1,7 @@
 from Crypto.Cipher import AES
 from Crypto import Random
 
-# inputFile '/Users/antoine/Dev/CryptoProject/test1.txt'
-# outputFile '/Users/antoine/Dev/CryptoProject/result.txt'
+
 
 iv = Random.new().read(AES.block_size)
 key = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
@@ -26,7 +25,7 @@ def cipherFile(key,inputFile,outputFile,iv):
     bytesCiphered = blockciphered
 
     #Repeat the process to create CBC operation mode instead of ECB
-    for i in range(1,int(len(newByteFile)/AES.block_size)-1):
+    for i in range(1,int(len(newByteFile)/AES.block_size)):
         block = newByteFile[i*AES.block_size:(i+1)*AES.block_size]
         blockXOR = bytearray([_a ^ _b for _a, _b in zip(blockciphered, block)])
         blockcipheredNext = cipher.encrypt(blockXOR)
@@ -53,7 +52,7 @@ def decipher(key,inputFile,outputFile,iv):
     bytesDeciphered = blockXOR
 
     #Iterative to decipher the whole file
-    for i in range(1,int(len(byteFileCiphered)/AES.block_size)-1):
+    for i in range(1,int(len(byteFileCiphered)/AES.block_size)):
         #Current Ciphered Block
         currentBlock = byteFileCiphered[i*AES.block_size:(i+1)*AES.block_size]
         #Decipher current block
@@ -68,7 +67,6 @@ def decipher(key,inputFile,outputFile,iv):
         fileCiphered.write(bytesDeciphered)
         del bytesDeciphered
         fileCiphered.close()
-
 
 
 
