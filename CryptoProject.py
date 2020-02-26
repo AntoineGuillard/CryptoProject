@@ -44,17 +44,10 @@ def cipher_file(key, input_file):
     # Generate IV
     iv = bytearray(Random.new().read(AES.block_size))
     # Open file in reading binary mode and store it inside a variable
-    print(iv)
-    print(iv)
-    print(iv)
-    print(iv)
-    print(key)
-    print(key)
-    print(key)
-    print(key)
     with open(input_file, 'rb') as fileToCipher:
         new_byte_file = bytearray(fileToCipher.read())
         fileToCipher.close()
+
     # Convert the key to the right format
     bytes_key = bytes.fromhex(key)
     # Create Cipher function
@@ -75,19 +68,13 @@ def cipher_file(key, input_file):
         block_ciphered_next = cipher.encrypt(block_xor)
         block_ciphered = block_ciphered_next
         bytes_ciphered += block_ciphered
-    return [input_file, block_ciphered, iv]
+
+    return [input_file, bytes_ciphered, iv]
 
 
 def decipher_file(key, input_file, iv):
     # Generate IV
-    print(iv)
-    print(iv)
-    print(iv)
-    print(iv)
-    print(key)
-    print(key)
-    print(key)
-    print(key)
+
     with open(input_file, 'rb') as file_to_decipher:
         byte_file_ciphered = bytearray(file_to_decipher.read())
         file_to_decipher.close()
@@ -113,7 +100,12 @@ def decipher_file(key, input_file, iv):
         block = current_block
         # Add Deciphered Block to Byte_array
         bytes_deciphered += block_xor
-
+    print("File deciphered in decipher file")
+    print(bytes_deciphered)
+    print(bytes_deciphered)
+    print(bytes_deciphered)
+    print(bytes_deciphered)
+    print(bytes_deciphered)
     return [input_file, bytes_deciphered]
 
 
@@ -142,8 +134,4 @@ def array_files(key, input_files, encrypt):
                 [int(i) for i in json_dict[get_file_name(fileToDecipher[0:-4])].strip('][').split(', ')])))
         return list_of_deciphered
 
-############################################################
-##
-# NEED TO TEST SUPPLY CHAIN BETWEEN CIPHER/DECIPHER ARRAYFILES and CREATEZIP#
-##
-############################################################
+

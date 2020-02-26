@@ -107,14 +107,6 @@ def create_zip(zip_file_name, files):
                 fileCiphered.write(file_resources[1])
                 fileCiphered.close()
 
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
-            print(file_resources[2])
             dict_for_json[get_file_name(file_resources[0])] = str(list(file_resources[2]))
         # Write the new content of IVs in the json file
         with open(zip_file_name + "/iv.json", 'w') as json_file:
