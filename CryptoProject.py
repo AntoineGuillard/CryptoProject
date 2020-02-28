@@ -1,5 +1,7 @@
 from Crypto.Cipher import AES
 from Crypto import Random
+from Crypto.Protocol.KDF import PBKDF2
+from Crypto.Hash import SHA512
 from Crypto_main import *
 
 
@@ -18,6 +20,13 @@ def file_exist(file_path):
         return True
     else:
         return False
+
+
+# noinspection PyTypeChecker
+def kdf(key):
+    salt = b'e\xd6e\xfcY\x0f|\t\xa3\xd2\x15\xbe\x8a\xa9x\x8c'
+    keys = PBKDF2(key, salt, 64, count=1000000, hmac_hash_module=SHA512)
+    return keys[19:35]
 
 
 def get_file_name(absolute_path):
@@ -72,12 +81,22 @@ def cipher_file(key, input_file):
     return [input_file, bytes_ciphered, iv]
 
 
-def decipher_file(key, input_file, iv):
+def decipher_file(key, input_file, iv, json_dict):
     # Generate IV
 
     with open(input_file, 'rb') as file_to_decipher:
         byte_file_ciphered = bytearray(file_to_decipher.read())
         file_to_decipher.close()
+    if cbc_mac(key, byte_file_ciphered) != bytearray(
+            [int(i) for i in json_dict[get_file_name(input_file[0:-4]) + ".mac"].strip('][').split(', ')]):
+        print("The file has been altered\nNow Exiting")
+        exit()
+    else:
+        print("The integrity of the file has been verified")
+        print("The integrity of the file has been verified")
+        print("The integrity of the file has been verified")
+        print("The integrity of the file has been verified")
+
     bytes_key = bytes.fromhex(key)
     decipher = AES.new(bytes_key, AES.MODE_ECB)
     # Ciphered Block
@@ -101,12 +120,18 @@ def decipher_file(key, input_file, iv):
         # Add Deciphered Block to Byte_array
         bytes_deciphered += block_xor
     print("File deciphered in decipher file")
-    print(bytes_deciphered)
-    print(bytes_deciphered)
-    print(bytes_deciphered)
-    print(bytes_deciphered)
-    print(bytes_deciphered)
     return [input_file, bytes_deciphered]
+
+
+def cbc_mac(key, ciphered_bytes):
+    bytes_key = bytes.fromhex(key)
+    derived_key = kdf(bytes_key)
+    cipher = AES.new(derived_key, AES.MODE_ECB)
+    block = ciphered_bytes[0:AES.block_size]
+    for i in range(1, int(len(ciphered_bytes) / AES.block_size)):
+        current_block = ciphered_bytes[i * AES.block_size:(i + 1) * AES.block_size]
+        block = bytearray([_a ^ _b for _a, _b in zip(current_block, block)])
+    return cipher.encrypt(block)
 
 
 # Create an array of lists, the last file is filled with name of input file, byte_array ciphered or decipher file, and iv
@@ -114,9 +139,17 @@ def array_files(key, input_files, encrypt):
     list_of_ciphered = []
     # Encrypt all files in input
     if encrypt:
-        for fileToCipher in input_files:
+        json_dict = {}
+        if file_exist(get_dir_name(input_files[0]) + "/iv.json"):
+            with open(get_dir_name(input_files[0]) + "/iv.json", 'r') as jsonFile:
+                json_dict = json.loads(jsonFile.read())
+
+        for i, fileToCipher in enumerate(input_files):
+
             list_of_ciphered.append(cipher_file(key, fileToCipher))
-        print(list_of_ciphered)
+
+            json_dict[get_file_name(fileToCipher)+".mac"] = str(list(cbc_mac(key, list_of_ciphered[i][1])))
+        list_of_ciphered.append(json_dict)
         return list_of_ciphered
     # Decrypt all files in input thanks to the iv stored in a json file
     else:
@@ -131,7 +164,8 @@ def array_files(key, input_files, encrypt):
         list_of_deciphered = []
         for fileToDecipher in input_files:
             list_of_deciphered.append(decipher_file(key, fileToDecipher, bytearray(
-                [int(i) for i in json_dict[get_file_name(fileToDecipher[0:-4])].strip('][').split(', ')])))
+                [int(i) for i in json_dict[get_file_name(fileToDecipher[0:-4])].strip('][').split(', ')]), json_dict))
+
         return list_of_deciphered
 
 

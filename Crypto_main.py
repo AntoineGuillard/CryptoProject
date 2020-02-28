@@ -85,7 +85,9 @@ def create_zip(zip_file_name, files):
         exit()
     else:
         print("Successfully created the directory %s" % zip_file_name)
-
+    print("________________________________")
+    print(len(files[0]))
+    print("________________________________")
     if len(files[0]) == 2:
         # Iterate in an array of type {[filePath1, bytes of ciphered File1,iv],...}
         for file_resources in files:
@@ -95,7 +97,9 @@ def create_zip(zip_file_name, files):
                 file_deciphered.close()
 
     elif len(files[0]) == 3:
-        dict_for_json = {}
+        print("In create zip")
+        dict_for_json = files.pop()
+        print(dict_for_json)
         if file_exist(get_dir_name(zip_file_name) + "/iv.json"):
             with open(get_dir_name(zip_file_name) + "/iv.json", 'rb') as jsonFile:
                 dict_for_json = json.loads(jsonFile.read())
