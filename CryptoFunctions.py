@@ -2,6 +2,9 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA512
 from Crypto.Protocol.KDF import PBKDF2
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import cmac
+from cryptography.hazmat.primitives.ciphers import algorithms
 
 # noinspection PyTypeChecker
 from SecondaryFunctions import get_file_name
@@ -92,7 +95,7 @@ def decipher_file(key, input_file, iv, json_dict):
     with open(input_file, 'rb') as file_to_decipher:
         byte_file_ciphered = bytearray(file_to_decipher.read())
         file_to_decipher.close()
-    if cbc_mac(key, byte_file_ciphered) != bytearray(
+    if cmac(key, byte_file_ciphered) != bytearray(
             [int(i) for i in json_dict[get_file_name(input_file[0:-4]) + ".mac"].strip('][').split(', ')]):
         print("The file has been altered\nNow Exiting")
         exit()
@@ -197,22 +200,14 @@ def cts_decipher(decipher, byte_file_ciphered, block_):
     return bytes_deciphered
 
 
-def cbc_mac(key, ciphered_bytes):
+def cmac(key, ciphered_bytes):
     # Transform key into binary format
     bytes_key = bytes.fromhex(key)
     # Derive the key to not use the same for encryption and integrity
     derived_key = kdf(bytes_key)
-    # Create the decipher function in ECB mode
-    cipher = AES.new(derived_key, AES.MODE_ECB)
-    # Do the padding for the file if necessary
-    ciphered_bytes = padding(ciphered_bytes)
-
-    block1 = ciphered_bytes[0:AES.block_size]
-    for i in range(1, int(len(ciphered_bytes) / AES.block_size)):
-        current_block1 = ciphered_bytes[i * AES.block_size:(i + 1) * AES.block_size]
-        block1 = bytearray([_a ^ _b for _a, _b in zip(current_block1, block1)])
-
-    return cipher.encrypt(block1)
+    c = cmac.CMAC(algorithms.AES(derived_key), backend=default_backend())
+    c.update(bytes(ciphered_bytes))
+    return c.finalize()
 
 
 

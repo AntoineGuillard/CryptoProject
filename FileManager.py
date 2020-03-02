@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 
-from CryptoFunctions import cipher_file, cbc_mac, decipher_file
+from CryptoFunctions import cipher_file, cmac, decipher_file
 from SecondaryFunctions import get_dir_name, get_file_name, is_not_hex, file_or_directory_exist
 
 
@@ -135,7 +135,7 @@ def array_files(key, input_files, encrypt):
 
         for i, fileToCipher in enumerate(input_files):
             list_of_ciphered.append(cipher_file(key, fileToCipher))
-            json_dict[get_file_name(fileToCipher) + ".mac"] = str(list(cbc_mac(key, list_of_ciphered[i][1])))
+            json_dict[get_file_name(fileToCipher) + ".mac"] = str(list(cmac(key, list_of_ciphered[i][1])))
         list_of_ciphered.append(json_dict)
         return list_of_ciphered
     # Decrypt all files in input thanks to the iv stored in a json file

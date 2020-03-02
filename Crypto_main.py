@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import sys
 
 from FileManager import create_zip, array_files, check_inputs
